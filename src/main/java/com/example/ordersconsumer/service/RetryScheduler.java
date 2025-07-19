@@ -16,6 +16,6 @@ public class RetryScheduler {
     public void scheduleRetry() {
         retryService.retryFailedOrders()
                 .doOnError(error -> System.err.println("Error ejecutando retry: " + error.getMessage()))
-                .subscribe(); // ¡Importante! Suscribirse al Mono
+                .subscribe();
     }
 }
