@@ -3,10 +3,12 @@ package com.example.ordersconsumer.consumer;
 import com.example.ordersconsumer.api.GoApi;
 import com.example.ordersconsumer.model.apimodel.OrderGoResponse;
 import com.example.ordersconsumer.model.apimodel.ProductDetail;
+import com.example.ordersconsumer.model.kafka.FailedOrderDTO;
 import com.example.ordersconsumer.model.kafka.OrderInputDTO;
 import com.example.ordersconsumer.model.mongo.order.Product;
 import com.example.ordersconsumer.model.mongo.order.SuccessfulProcessedOrder;
 import com.example.ordersconsumer.service.OrderService;
+import com.example.ordersconsumer.service.RetryService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
@@ -19,13 +21,16 @@ import java.util.List;
 public class OrderKafkaConsumer {
     private final GoApi goApi;
     private final OrderService orderService;
+    private final RetryService retryService;
 
     public OrderKafkaConsumer(
             GoApi goApi,
-            OrderService orderService
+            OrderService orderService,
+            RetryService retryService
     ) {
         this.goApi = goApi;
         this.orderService = orderService;
+        this.retryService = retryService;
     }
 
     @KafkaListener(topics = "${kafka-order.topic}", groupId = "${kafka-order.group-id}")
@@ -48,7 +53,10 @@ public class OrderKafkaConsumer {
                 })
                 .doOnError(error -> {
                     System.err.println("Error procesando pedido: " + error.getMessage());
-                    System.err.println("Guardando en DB de pedidos fallidos para procesarlos después");
+
+                    FailedOrderDTO failedOrder = new FailedOrderDTO(input, 0);
+                    retryService.saveFailedOrder(failedOrder)
+                            .subscribe();
                 })
                 .doFinally(signal -> ack.acknowledge())
                 .subscribe();

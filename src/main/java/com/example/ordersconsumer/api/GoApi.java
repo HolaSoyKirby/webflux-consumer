@@ -85,7 +85,7 @@ public class GoApi {
                 .bodyToFlux(ProductDetail.class)
                 .collectList()
                 .onErrorResume(e -> {
-                    System.err.println("⚠️ Error obteniendo productos: " + e.getMessage());
+                    System.err.println("Error obteniendo productos: " + e.getMessage());
                     return Mono.error(e);
                 });
     }
