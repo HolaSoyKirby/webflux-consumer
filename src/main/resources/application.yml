@@ -1,0 +1,25 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example.ordersconsumer.model.kafka
+        spring.json.value.default.type: com.example.ordersconsumer.model.kafka.OrderInputDTO
+        spring.json.use.type.headers: false
+    listener:
+      ack-mode: manual
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/orderdb
+
+kafka-order:
+  topic: orders-topic
+  group-id: order-group
+
+go-api:
+  baseUrl: http://localhost:8082/api
